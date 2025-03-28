@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometrías del Imperialismo Interactivo</title>
+    <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.1/standalone/umd/vis-network.min.js"></script>
+    <style>
+        /* Estilo general del cuerpo */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Contenedor principal para la red */
+        #network {
+            width: 80%;
+            height: 600px;
+            border: 2px solid #ddd;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilo para los nodos */
+        .vis-network .vis-node {
+            border-radius: 50%;
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+            padding: 10px 15px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Colores de los nodos */
+        .vis-network .vis-node:nth-child(odd) {
+            background-color: #00796b; /* Verde oscuro */
+        }
+
+        .vis-network .vis-node:nth-child(even) {
+            background-color: #0288d1; /* Azul */
+        }
+
+        .vis-network .vis-node:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Nodo seleccionado */
+        .vis-network .vis-node.vis-selected {
+            background-color: #004d40;
+            transform: scale(1.15);
+        }
+
+        /* Estilo para las aristas */
+        .vis-network .vis-edge {
+            color: #888;
+            width: 2px;
+            
+        }
+
+        /* Efecto hover en aristas */
+        .vis-network .vis-edge:hover {
+            width: 3px;
+            color: #00796b;
+        }
+
+        /* Panel lateral de información */
+        #infoPanel {
+            width: 25%;
+            padding: 20px;
+            background-color: #f7f7f7;
+            border-left: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #333;
+            overflow-y: auto;
+        }
+
+        /* Títulos del panel */
+        #infoPanel h2 {
+            font-size: 20px;
+            color: #00796b;
+            margin-bottom: 15px;
+        }
+
+        /* Información detallada */
+        #nodeInfo p {
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="network"></div>
+    <div id="infoPanel">
+        <h2>Información del Nodo</h2>
+        <div id="nodeInfo">
+            <p>Haz clic en un nodo para ver más detalles.</p>
+        </div>
+    </div>
+
+    <script>
+        // Datos de los nodos y enlaces
+        var nodes_data = [
+            { id: 1, label: "Imperialismo y Guerra", title: "La guerra no es una consecuencia del imperialismo, sino su núcleo. Los imperios siempre están en guerra para expandir mercados y territorios. Ejemplos: Irak, Afganistán y Palestina." },
+            { id: 2, label: "Reparto del Mundo", title: "Desde la Conferencia de Berlín (1885) hasta 1989, los imperios han dividido el mundo en centros de poder y periferias, con conflictos por control territorial y recursos." },
+            { id: 3, label: "Capitalismo Absoluto", title: "El capitalismo ha desbordado los límites de los antiguos imperios, abriendo economías periféricas a flujos globales de mercancías y capital." },
+            { id: 4, label: "Violencia y Desigualdad Global", title: "La violencia es distribuida globalmente de forma desigual: en el 'centro', las potencias ejercen violencia estructural sobre las periferias, generando genocidios y exterminios." },
+            { id: 5, label: "Explotación y Extractivismo", title: "El capitalismo actual se apoya en el extractivismo, explotando recursos naturales estratégicos en África y América Latina." },
+            { id: 6, label: "Crisis Ecológica", title: "El capitalismo absoluto lleva a la destrucción de las condiciones ecológicas necesarias para la vida humana y no humana, generando una crisis ambiental irreversible." },
+            { id: 7, label: "Cultura y Conflicto", title: "Según Said, la cultura no solo es dominación, sino también un campo de mediación política que puede ser subvertido mediante un contradiscurso." },
+            { id: 8, label: "Poscultura y Fundamentalismos", title: "Los fundamentalismos religioso, mercantil y tecnológico neutralizan la capacidad subversiva de la cultura, cerrando posibilidades de resistencia." },
+            { id: 9, label: "Redes Transnacionales", title: "Las redes transnacionales permiten articular luchas globales por la paz, la cooperación Norte-Sur y la justicia social." },
+            { id: 10, label: "Comunidad Cosmopolítica", title: "Una federación de pueblos y culturas donde las luchas antiimperialistas y la defensa del medioambiente sean el núcleo de la revolución del siglo XXI." }
+        ];
+
+        var edges_data = [
+            { from: 1, to: 2 },
+            { from: 1, to: 3 },
+            { from: 3, to: 4 },
+            { from: 3, to: 5 },
+            { from: 5, to: 6 },
+            { from: 7, to: 8 },
+            { from: 9, to: 10 },
+            { from: 10, to: 6 }
+        ];
+
+        // Crear el objeto de nodos y enlaces
+        var nodes = new vis.DataSet(nodes_data);
+        var edges = new vis.DataSet(edges_data);
+
+        // Configuración de la red (vis-network)
+        var options = {
+            physics: {
+                barnesHut: {
+                    gravitationalConstant: -5000,
+                    centralGravity: 0.1,
+                    springLength: 150,
+                    springConstant: 0.02,
+                    damping: 0.09
+                }
+            },
+            nodes: {
+                shape: 'circle',
+                size: 30,
+                font: {
+                    size: 16,
+                    color: '#fff',
+                    align: 'center'
+                },
+                color: {
+                    border: '#00796b',
+                    background: '#00796b'
+                }
+            },
+            edges: {
+                arrows: {
+                    to: { enabled: true, scaleFactor: 0.5 }
+                },
+                smooth: {
+                    type: 'continuous'
+                }
+            }
+        };
+
+        // Crear la red
+        var container = document.getElementById('network');
+        var network = new vis.Network(container, { nodes: nodes, edges: edges }, options);
+
+        // Función para actualizar la información del nodo
+        network.on('selectNode', function (properties) {
+            var nodeId = properties.nodes[0];
+            var selectedNode = nodes.get(nodeId);
+            document.getElementById('nodeInfo').innerHTML = `
+                <h2>${selectedNode.label}</h2>
+                <p>${selectedNode.title}</p>
+            `;
+        });
+    </script>
+</body>
+</html>
